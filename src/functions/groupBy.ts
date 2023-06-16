@@ -1,33 +1,4 @@
-type DeepKeyOf<T> = T extends object
-  ? {
-      [K in keyof T]-?: T[K] extends object
-        ? `${K & string}.${DeepKeyOf<T[K]>}`
-        : K & string;
-    }[keyof T]
-  : "";
-
-const isDeepKeyOf = <TObj extends object>(
-  key: unknown
-): key is DeepKeyOf<TObj> => typeof key === "string" && key.includes(".");
-
-type SplitedDeepKey<TObj extends object> = {
-  firstKey: keyof TObj;
-  restKeys: DeepKeyOf<TObj>;
-};
-
-const splitDeepKey = <TObj extends object>(
-  key: DeepKeyOf<TObj>
-): SplitedDeepKey<TObj> => {
-  const [firstKey, ...restKeys] = key.split(".") as [
-    keyof TObj,
-    ...DeepKeyOf<TObj>[]
-  ];
-
-  return {
-    firstKey,
-    restKeys: restKeys.join(".") as DeepKeyOf<TObj>,
-  };
-};
+import { DeepKeyOf, isDeepKeyOf, splitDeepKey } from "../shared/deepKey";
 
 export const groupBy = <TObj extends object, TKey extends DeepKeyOf<TObj>>(
   array: TObj[],

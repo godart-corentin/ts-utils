@@ -21,9 +21,9 @@ export const groupBy = <TObj extends object, TKey extends DeepKeyOf<TObj>>(
 
     if (value === undefined) return acc;
 
-    if (value) {
-      acc[value] = [...(acc[value] || []), obj];
-    }
-    return acc;
+    return {
+      ...acc,
+      [value]: [...(acc[value] || []), obj],
+    };
   }, {});
 };

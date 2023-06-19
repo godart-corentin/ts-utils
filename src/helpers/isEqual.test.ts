@@ -8,6 +8,7 @@ describe.concurrent("isEqual", () => {
 
     expect(isEqual("a", "a")).toEqual(true);
     expect(isEqual("a", "b")).toEqual(false);
+    expect(isEqual("2", "2")).toEqual(true);
 
     expect(isEqual(true, true)).toEqual(true);
     expect(isEqual(true, false)).toEqual(false);

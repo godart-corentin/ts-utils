@@ -1,4 +1,4 @@
-import { isEqual } from "./isEqual";
+import { isEqual } from "../helpers";
 
 export const uniq = <T>(array: T[]): T[] =>
   array.reduce<T[]>((acc, item) => {

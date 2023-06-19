@@ -1,4 +1,6 @@
-import { DeepKeyOf, isDeepKeyOf, splitDeepKey } from "../shared/deepKey";
+import { splitDeepKey } from "../helpers/splitDeepKey";
+import { DeepKeyOf } from "../types";
+import { isDeepKey } from "../typeguards";
 
 export const countBy = <TObj extends object, TKey extends DeepKeyOf<TObj>>(
   array: TObj[],
@@ -8,7 +10,7 @@ export const countBy = <TObj extends object, TKey extends DeepKeyOf<TObj>>(
     obj: TObj,
     key: DeepKeyOf<TObj> | keyof TObj
   ): string | undefined => {
-    if (isDeepKeyOf<TObj>(key)) {
+    if (isDeepKey<TObj>(key)) {
       const { firstKey, restKeys } = splitDeepKey<TObj>(key);
       return getValue(obj[firstKey], restKeys);
     }

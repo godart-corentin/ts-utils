@@ -1,0 +1,162 @@
+import { describe, expect, it } from "vitest";
+import { tuple } from "./tuple";
+import { str } from "./string";
+import { num } from "./number";
+import { bool } from "./boolean";
+import { arr } from "./array";
+import { obj } from "./object";
+import { union } from "./union";
+import { nullable } from "./nullable";
+import { lit } from "./literal";
+
+describe.concurrent('Tuple validator', () => {
+    it('should throw an error if the value is not an array', () => {
+        expect(() => tuple([str(), num()]).parse('hello')).toThrow('Value is not an array');
+        expect(() => tuple([str(), num()]).parse(123)).toThrow('Value is not an array');
+        expect(() => tuple([str(), num()]).parse({})).toThrow('Value is not an array');
+    });
+
+    it('should throw an error if length does not match', () => {
+        expect(() => tuple([str(), num()]).parse(['hello'])).toThrow('Expected 2 elements, got 1');
+        expect(() => tuple([str(), num()]).parse(['hello', 123, true])).toThrow('Expected 2 elements, got 3');
+    });
+
+    it('should validate each element with corresponding validator', () => {
+        expect(() => tuple([str(), num()]).parse([123, 456])).toThrow('Value is not a string');
+        expect(() => tuple([str(), num()]).parse(['hello', 'world'])).toThrow('Value is not a number');
+        expect(() => tuple([num(), num(), num()]).parse([1, 2, 'three'])).toThrow('Value is not a number');
+    });
+
+    it('should return the value if it is valid', () => {
+        expect(tuple([str(), num()]).parse(['hello', 123])).toEqual(['hello', 123]);
+        expect(tuple([num(), str(), bool()]).parse([42, 'test', true])).toEqual([42, 'test', true]);
+    });
+
+    it('should work with many elements', () => {
+        const validator = tuple([str(), num(), bool(), str(), num()]);
+        expect(validator.parse(['a', 1, true, 'b', 2])).toEqual(['a', 1, true, 'b', 2]);
+    });
+
+    it('should work with nested arrays', () => {
+        const validator = tuple([arr(str()), arr(num())]);
+        expect(validator.parse([['a', 'b'], [1, 2]])).toEqual([['a', 'b'], [1, 2]]);
+        expect(() => validator.parse([['a', 'b'], ['c', 'd']])).toThrow('Value is not a number');
+    });
+
+    it('should work with objects', () => {
+        const validator = tuple([
+            obj({ name: str() }),
+            obj({ age: num() })
+        ]);
+
+        expect(validator.parse([
+            { name: 'Alice' },
+            { age: 30 }
+        ])).toEqual([
+            { name: 'Alice' },
+            { age: 30 }
+        ]);
+    });
+
+    it('should work with unions', () => {
+        const validator = tuple([
+            union([str(), num()]),
+            bool()
+        ]);
+
+        expect(validator.parse(['hello', true])).toEqual(['hello', true]);
+        expect(validator.parse([123, false])).toEqual([123, false]);
+        expect(() => validator.parse([true, true])).toThrow('Value is not valid');
+    });
+
+    it('should work with nullable validators', () => {
+        const validator = tuple([nullable(str()), num()]);
+        expect(validator.parse([null, 123])).toEqual([null, 123]);
+        expect(validator.parse(['hello', 123])).toEqual(['hello', 123]);
+    });
+
+    it('should work with nested tuples', () => {
+        const validator = tuple([
+            str(),
+            tuple([num(), num()])
+        ]);
+
+        expect(validator.parse(['point', [10, 20]])).toEqual(['point', [10, 20]]);
+        expect(() => validator.parse(['point', [10]])).toThrow('Expected 2 elements, got 1');
+    });
+
+    it('should work with literals', () => {
+        const httpResponse = tuple([
+            union([lit(200), lit(404), lit(500)]),
+            str()
+        ]);
+
+        expect(httpResponse.parse([200, 'OK'])).toEqual([200, 'OK']);
+        expect(httpResponse.parse([404, 'Not Found'])).toEqual([404, 'Not Found']);
+        expect(() => httpResponse.parse([201, 'Created'])).toThrow('Value is not valid');
+    });
+
+    it('should work with validation options', () => {
+        const validator = tuple([
+            str({ minLen: 3 }),
+            num({ min: 0, max: 100 })
+        ]);
+
+        expect(validator.parse(['hello', 50])).toEqual(['hello', 50]);
+        expect(() => validator.parse(['hi', 50])).toThrow('Value is too short');
+        expect(() => validator.parse(['hello', 150])).toThrow('Value is too big');
+    });
+
+
+    describe('edge cases', () => {
+        it('should handle tuples with edge values', () => {
+            const validator = tuple([str(), num(), bool()]);
+            expect(validator.parse(['', 0, false])).toEqual(['', 0, false]);
+            expect(validator.parse(['text', NaN, true])).toEqual(['text', NaN, true]);
+        });
+
+        it('should preserve order', () => {
+            const validator = tuple([num(), str()]);
+            const result = validator.parse([123, 'hello']);
+            expect(result[0]).toBe(123);
+            expect(result[1]).toBe('hello');
+        });
+
+        it('should work with coercion', () => {
+            const validator = tuple([
+                str({ coerce: true }),
+                num({ coerce: true })
+            ]);
+
+            expect(validator.parse([123, '456'])).toEqual(['123', 456]);
+        });
+    });
+
+    describe('common use cases', () => {
+        it('should work for coordinates', () => {
+            const point2D = tuple([num(), num()]);
+            const point3D = tuple([num(), num(), num()]);
+
+            expect(point2D.parse([10, 20])).toEqual([10, 20]);
+            expect(point3D.parse([10, 20, 30])).toEqual([10, 20, 30]);
+        });
+
+        it('should work for key-value pairs', () => {
+            const entry = tuple([str(), num()]);
+            expect(entry.parse(['age', 25])).toEqual(['age', 25]);
+        });
+
+        it('should work for HTTP responses', () => {
+            const response = tuple([num(), str(), obj({ headers: arr(str()) })]);
+            expect(response.parse([
+                200,
+                'OK',
+                { headers: ['Content-Type', 'Authorization'] }
+            ])).toEqual([
+                200,
+                'OK',
+                { headers: ['Content-Type', 'Authorization'] }
+            ]);
+        });
+    });
+});

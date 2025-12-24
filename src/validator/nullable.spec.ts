@@ -1,0 +1,69 @@
+import { describe, expect, it } from "vitest";
+import { nullable } from "./nullable";
+import { str } from "./string";
+import { num } from "./number";
+import { bool } from "./boolean";
+import { arr } from "./array";
+import { obj } from "./object";
+import { union } from "./union";
+
+describe.concurrent('Nullable validator', () => {
+    it('should accept null', () => {
+        expect(nullable(str()).parse(null)).toBe(null);
+        expect(nullable(num()).parse(null)).toBe(null);
+        expect(nullable(bool()).parse(null)).toBe(null);
+    });
+
+    it('should accept valid values', () => {
+        expect(nullable(str()).parse('hello')).toBe('hello');
+        expect(nullable(num()).parse(123)).toBe(123);
+        expect(nullable(bool()).parse(true)).toBe(true);
+    });
+
+    it('should reject undefined', () => {
+        expect(() => nullable(str()).parse(undefined)).toThrow('Value is not a string');
+    });
+
+    it('should reject invalid values', () => {
+        expect(() => nullable(str()).parse(123)).toThrow('Value is not a string');
+        expect(() => nullable(num()).parse('hello')).toThrow('Value is not a number');
+    });
+
+    it('should work with arrays', () => {
+        expect(nullable(arr(str())).parse(null)).toBe(null);
+        expect(nullable(arr(str())).parse(['a', 'b'])).toEqual(['a', 'b']);
+        expect(() => nullable(arr(str())).parse([1, 2])).toThrow('Value is not a string');
+    });
+
+    it('should work with objects', () => {
+        const validator = nullable(obj({ name: str() }));
+        expect(validator.parse(null)).toBe(null);
+        expect(validator.parse({ name: 'John' })).toEqual({ name: 'John' });
+    });
+
+    it('should work with unions', () => {
+        const validator = nullable(union([str(), num()]));
+        expect(validator.parse(null)).toBe(null);
+        expect(validator.parse('hello')).toBe('hello');
+        expect(validator.parse(123)).toBe(123);
+    });
+
+    it('should work with nested nullable validators', () => {
+        const validator = nullable(arr(nullable(str())));
+        expect(validator.parse(null)).toBe(null);
+        expect(validator.parse(['hello', null, 'world'])).toEqual(['hello', null, 'world']);
+    });
+
+    it('should work with validation options', () => {
+        const validator = nullable(str({ minLen: 3, maxLen: 10 }));
+        expect(validator.parse(null)).toBe(null);
+        expect(validator.parse('hello')).toBe('hello');
+        expect(() => validator.parse('hi')).toThrow('Value is too short');
+        expect(() => validator.parse('verylongstring')).toThrow('Value is too long');
+    });
+
+    it('should handle 0 vs null', () => {
+        expect(nullable(num()).parse(0)).toBe(0);
+        expect(nullable(num()).parse(null)).toBe(null);
+    });
+});

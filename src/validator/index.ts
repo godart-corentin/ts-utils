@@ -10,3 +10,4 @@ export * from "./optional";
 export * from "./nullish";
 export * from "./tuple";
 export * from "./record";
+export * from "./enum";

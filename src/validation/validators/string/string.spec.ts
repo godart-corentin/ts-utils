@@ -10,11 +10,11 @@ describe.concurrent('String validator', () => {
         });
 
         it('should throw an error if the value is too short', () => {
-            expect(() => str({ minLen: 5 }).parse('1234')).toThrow('Value is too short');
+            expect(() => str({ minLen: 5 }).parse('1234')).toThrow('Value is too short, expected at least 5 characters');
         });
 
         it('should throw an error if the value is too long', () => {
-            expect(() => str({ maxLen: 5 }).parse('123456')).toThrow('Value is too long');
+            expect(() => str({ maxLen: 5 }).parse('123456')).toThrow('Value is too long, expected at most 5 characters');
         });
 
         it('should throw an error if the value does not match the pattern', () => {
@@ -53,7 +53,7 @@ describe.concurrent('String validator', () => {
         });
 
         it('should apply validation after coercion', () => {
-            expect(() => str({ coerce: true, minLen: 5 }).parse(123)).toThrow('Value is too short');
+            expect(() => str({ coerce: true, minLen: 5 }).parse(123)).toThrow('Value is too short, expected at least 5 characters');
             expect(str({ coerce: true, minLen: 3 }).parse(123)).toBe('123');
 
             expect(() => str({ coerce: true, pattern: '^[0-9]+$' }).parse(true)).toThrow('Value does not match the pattern');
@@ -64,7 +64,7 @@ describe.concurrent('String validator', () => {
     describe('edge cases', () => {
         it('should handle empty strings', () => {
             expect(str().parse('')).toBe('');
-            expect(() => str({ minLen: 1 }).parse('')).toThrow('Value is too short');
+            expect(() => str({ minLen: 1 }).parse('')).toThrow('Value is too short, expected at least 1 characters');
         });
 
         it('should handle unicode characters', () => {
@@ -80,16 +80,16 @@ describe.concurrent('String validator', () => {
         it('should work with combined validations', () => {
             const validator = str({ minLen: 3, maxLen: 10, pattern: '^[a-z]+$' });
             expect(validator.parse('hello')).toBe('hello');
-            expect(() => validator.parse('hi')).toThrow('Value is too short');
-            expect(() => validator.parse('verylongstring')).toThrow('Value is too long');
+            expect(() => validator.parse('hi')).toThrow('Value is too short, expected at least 3 characters');
+            expect(() => validator.parse('verylongstring')).toThrow('Value is too long, expected at most 10 characters');
             expect(() => validator.parse('HELLO')).toThrow('Value does not match the pattern');
         });
 
         it('should handle exact length validation', () => {
             const exactLength = str({ minLen: 5, maxLen: 5 });
             expect(exactLength.parse('hello')).toBe('hello');
-            expect(() => exactLength.parse('hi')).toThrow('Value is too short');
-            expect(() => exactLength.parse('toolong')).toThrow('Value is too long');
+            expect(() => exactLength.parse('hi')).toThrow('Value is too short, expected at least 5 characters');
+            expect(() => exactLength.parse('toolong')).toThrow('Value is too long, expected at most 5 characters');
         });
     });
 
@@ -116,7 +116,7 @@ describe.concurrent('String validator', () => {
             const result = str({ minLen: 5 }).safeParse('hi');
             expect(result.type).toBe('error');
             if (result.type === 'error') {
-                expect(result.issues[0].message).toBe('Value is too short');
+                expect(result.issues[0].message).toBe('Value is too short, expected at least 5 characters');
             }
         });
     });

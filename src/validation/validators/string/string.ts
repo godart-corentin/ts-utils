@@ -1,7 +1,7 @@
-import type { Validator } from "../common";
-import { withSafeParse } from "../withSafeParse";
-import { ValidationError } from "../error";
-import { getValueType } from "../getValueType";
+import type { Validator } from "../../common";
+import { withSafeParse } from "../../withSafeParse";
+import { ValidationError } from "../../error";
+import { getValueType } from "../../getValueType";
 
 type StringOptions = {
     minLen?: number;
@@ -10,11 +10,9 @@ type StringOptions = {
     coerce?: boolean;
 }
 
-type StringValidator = Validator<string>;
-
 const coerceString = (value: unknown): string => String(value);
 
-export const str = (opts?: StringOptions): StringValidator => {
+export const str = (opts?: StringOptions): Validator<string> => {
     return withSafeParse({
         parse(value): string {
             const val = opts?.coerce ? coerceString(value) : value;
@@ -28,11 +26,11 @@ export const str = (opts?: StringOptions): StringValidator => {
             }
 
             if (opts?.minLen && val.length < opts.minLen) {
-                throw new ValidationError([{ message: 'Value is too short', path: '' }]);
+                throw new ValidationError([{ message: `Value is too short, expected at least ${opts.minLen} characters`, path: '' }]);
             }
 
             if (opts?.maxLen && val.length > opts.maxLen) {
-                throw new ValidationError([{ message: 'Value is too long', path: '' }]);
+                throw new ValidationError([{ message: `Value is too long, expected at most ${opts.maxLen} characters`, path: '' }]);
             }
 
             if (opts?.pattern && !new RegExp(opts.pattern).test(val)) {

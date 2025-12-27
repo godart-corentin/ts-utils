@@ -1,4 +1,5 @@
 import type { Validator } from "./common";
+import { withSafeParse } from "./common";
 import { ValidationError } from "./error";
 
 type BooleanOptions = {
@@ -8,15 +9,13 @@ type BooleanOptions = {
 type BooleanValidator = Validator<boolean>;
 
 const coerceBoolean = (value: unknown): boolean => {
-    if (typeof value === 'boolean') return value;
     if (value === 'true' || value === '1' || value === 1) return true;
-    if (value === 'false' || value === '0' || value === 0 || value === '' || value === null || value === undefined) return false;
-
+    if (value === 'false' || value === '0' || value === 0) return false;
     return Boolean(value);
 }
 
 export const bool = (opts?: BooleanOptions): BooleanValidator => {
-    return {
+    return withSafeParse({
         parse(value): boolean {
             const val = opts?.coerce ? coerceBoolean(value) : value;
 
@@ -26,5 +25,5 @@ export const bool = (opts?: BooleanOptions): BooleanValidator => {
 
             return val;
         }
-    }
+    });
 }

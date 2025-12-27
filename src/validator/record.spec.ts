@@ -257,4 +257,24 @@ describe.concurrent('Record validator', () => {
             })).toThrow('Value is not valid');
         });
     });
+
+    describe('safeParse', () => {
+        it('should return success for valid record', () => {
+            const result = record(str(), num()).safeParse({ a: 1, b: 2 });
+            expect(result.type).toBe('success');
+            if (result.type === 'success') {
+                expect(result.data).toEqual({ a: 1, b: 2 });
+            }
+        });
+
+        it('should collect all value errors', () => {
+            const result = record(str(), num()).safeParse({ a: 1, b: 'invalid', c: 3, d: 'bad' });
+            expect(result.type).toBe('error');
+            if (result.type === 'error') {
+                expect(result.issues).toHaveLength(2);
+                const paths = result.issues.map(i => i.path).sort();
+                expect(paths).toEqual(['b', 'd']);
+            }
+        });
+    });
 });

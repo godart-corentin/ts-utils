@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { arr } from "./array";
 import { str } from "./string";
 import { num } from "./number";
+import { obj } from "./object";
 import { union } from "./union";
 
 describe.concurrent('Array validator', () => {
@@ -92,6 +93,39 @@ describe.concurrent('Array validator', () => {
 
         it('should handle arrays with undefined values', () => {
             expect(() => arr(str()).parse(['a', undefined, 'c'])).toThrow('Value is not a string');
+        });
+    });
+
+    describe('safeParse', () => {
+        it('should return success for valid array', () => {
+            const result = arr(str()).safeParse(['a', 'b', 'c']);
+            expect(result.type).toBe('success');
+            if (result.type === 'success') {
+                expect(result.data).toEqual(['a', 'b', 'c']);
+            }
+        });
+
+        it('should collect all element errors', () => {
+            const result = arr(num()).safeParse([1, 'two', 3, 'four']);
+            expect(result.type).toBe('error');
+            if (result.type === 'error') {
+                expect(result.issues).toHaveLength(2);
+                expect(result.issues[0].path).toBe('[1]');
+                expect(result.issues[1].path).toBe('[3]');
+            }
+        });
+
+        it('should include paths for arrays in objects', () => {
+            const validator = arr(obj({ name: str() }));
+            const result = validator.safeParse([
+                { name: 'Alice' },
+                { name: 123 }
+            ]);
+
+            expect(result.type).toBe('error');
+            if (result.type === 'error') {
+                expect(result.issues[0].path).toBe('[1].name');
+            }
         });
     });
 })

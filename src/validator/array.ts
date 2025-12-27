@@ -1,4 +1,5 @@
 import type { ExtractValidatorType, Validator } from "./common";
+import { withSafeParse } from "./common";
 import { ValidationError, type ValidationIssue } from "./error";
 
 type ArrayOptions = {
@@ -9,7 +10,7 @@ type ArrayOptions = {
 type ArrayValidator<V extends Validator> = Validator<ExtractValidatorType<V>[]>;
 
 export const arr = <V extends Validator>(arrayValidator: V, opts?: ArrayOptions): ArrayValidator<V> => {
-    return {
+    return withSafeParse({
         parse(value): ExtractValidatorType<V>[] {
             if (!Array.isArray(value)) {
                 throw new ValidationError([{ message: 'Value is not an array', path: '' }]);
@@ -51,6 +52,6 @@ export const arr = <V extends Validator>(arrayValidator: V, opts?: ArrayOptions)
             }
 
             return result as ExtractValidatorType<V>[];
-        },
-    }
+        }
+    });
 }

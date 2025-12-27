@@ -188,4 +188,45 @@ describe.concurrent("Object validator", () => {
             });
         });
     });
+
+    describe('safeParse', () => {
+        it('should return success for valid object', () => {
+            const validator = obj({ name: str(), age: num() });
+            const result = validator.safeParse({ name: 'John', age: 30 });
+
+            expect(result.type).toBe('success');
+            if (result.type === 'success') {
+                expect(result.data).toEqual({ name: 'John', age: 30 });
+            }
+        });
+
+        it('should collect all property errors', () => {
+            const validator = obj({ name: str(), age: num(), active: bool() });
+            const result = validator.safeParse({ name: 123, age: 'invalid', active: 'yes' });
+
+            expect(result.type).toBe('error');
+            if (result.type === 'error') {
+                expect(result.issues).toHaveLength(3);
+                const paths = result.issues.map(i => i.path).sort();
+                expect(paths).toEqual(['active', 'age', 'name']);
+            }
+        });
+
+        it('should include correct paths for nested objects', () => {
+            const validator = obj({
+                user: obj({ name: str(), age: num() })
+            });
+
+            const result = validator.safeParse({
+                user: { name: 123, age: 'invalid' }
+            });
+
+            expect(result.type).toBe('error');
+            if (result.type === 'error') {
+                expect(result.issues).toHaveLength(2);
+                const paths = result.issues.map(i => i.path).sort();
+                expect(paths).toEqual(['user.age', 'user.name']);
+            }
+        });
+    });
 })

@@ -1,4 +1,5 @@
 import type { Validator } from "./common";
+import { withSafeParse } from "./common";
 import { ValidationError } from "./error";
 
 type NumberOptions = {
@@ -6,8 +7,6 @@ type NumberOptions = {
     max?: number;
     coerce?: boolean;
 }
-
-type NumberValidator = Validator<number>;
 
 const coerceNumber = (value: unknown): number => {
     const coerced = Number(value);
@@ -17,8 +16,8 @@ const coerceNumber = (value: unknown): number => {
     return coerced;
 }
 
-export const num = (opts?: NumberOptions): NumberValidator => {
-    return {
+export const num = (opts?: NumberOptions): Validator<number> => {
+    return withSafeParse({
         parse(value): number {
             const val = opts?.coerce ? coerceNumber(value) : value;
 
@@ -36,5 +35,5 @@ export const num = (opts?: NumberOptions): NumberValidator => {
 
             return val;
         }
-    }
+    });
 }

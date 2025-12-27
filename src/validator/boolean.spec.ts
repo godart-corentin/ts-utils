@@ -85,4 +85,22 @@ describe.concurrent('Boolean validator', () => {
             expect(bool({ coerce: true }).parse(42)).toBe(true);
         });
     });
+
+    describe('safeParse', () => {
+        it('should return success for valid boolean', () => {
+            const result = bool().safeParse(true);
+            expect(result.type).toBe('success');
+            if (result.type === 'success') {
+                expect(result.data).toBe(true);
+            }
+        });
+
+        it('should return error for invalid boolean', () => {
+            const result = bool().safeParse('yes');
+            expect(result.type).toBe('error');
+            if (result.type === 'error') {
+                expect(result.issues[0].message).toBe('Value is not a boolean');
+            }
+        });
+    });
 })

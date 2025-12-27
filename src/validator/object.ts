@@ -1,4 +1,5 @@
 import type { ExtractValidatorType, Validator } from "./common";
+import { withSafeParse } from "./common";
 import { ValidationError, type ValidationIssue } from "./error";
 
 // Extract the parsed object type from a schema
@@ -9,7 +10,7 @@ type InferObjectType<Schema extends Record<string, Validator>> = {
 type ObjectValidator<Schema extends Record<string, Validator>> = Validator<InferObjectType<Schema>>;
 
 export const obj = <Schema extends Record<string, Validator>>(schema: Schema): ObjectValidator<Schema> => {
-    return {
+    return withSafeParse({
         parse(value): InferObjectType<Schema> {
             if (value === null || value === undefined) {
                 throw new ValidationError([{ message: 'Value is not an object', path: '' }]);
@@ -29,7 +30,6 @@ export const obj = <Schema extends Record<string, Validator>>(schema: Schema): O
                     result[key] = validator.parse(inputValue);
                 } catch (error) {
                     if (error instanceof ValidationError) {
-                        // Prepend the property name to all issues
                         const issuesWithPath = error.issues.map(issue => ({
                             message: issue.message,
                             path: issue.path
@@ -38,7 +38,6 @@ export const obj = <Schema extends Record<string, Validator>>(schema: Schema): O
                         }));
                         issues.push(...issuesWithPath);
                     } else {
-                        // Non-validation error, re-throw
                         throw error;
                     }
                 }
@@ -50,5 +49,5 @@ export const obj = <Schema extends Record<string, Validator>>(schema: Schema): O
 
             return result as InferObjectType<Schema>;
         }
-    }
+    });
 }

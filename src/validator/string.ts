@@ -1,4 +1,5 @@
 import type { Validator } from "./common";
+import { withSafeParse } from "./common";
 import { ValidationError } from "./error";
 
 type StringOptions = {
@@ -13,7 +14,7 @@ type StringValidator = Validator<string>;
 const coerceString = (value: unknown): string => String(value);
 
 export const str = (opts?: StringOptions): StringValidator => {
-    return {
+    return withSafeParse({
         parse(value): string {
             const val = opts?.coerce ? coerceString(value) : value;
 
@@ -35,5 +36,5 @@ export const str = (opts?: StringOptions): StringValidator => {
 
             return val;
         }
-    }
+    });
 }

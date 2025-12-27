@@ -92,4 +92,32 @@ describe.concurrent('String validator', () => {
             expect(() => exactLength.parse('toolong')).toThrow('Value is too long');
         });
     });
+
+    describe('safeParse', () => {
+        it('should return success for valid string', () => {
+            const result = str().safeParse('hello');
+            expect(result.type).toBe('success');
+            if (result.type === 'success') {
+                expect(result.data).toBe('hello');
+            }
+        });
+
+        it('should return error for invalid string', () => {
+            const result = str().safeParse(123);
+            expect(result.type).toBe('error');
+            if (result.type === 'error') {
+                expect(result.issues).toHaveLength(1);
+                expect(result.issues[0].message).toBe('Value is not a string');
+                expect(result.issues[0].path).toBe('');
+            }
+        });
+
+        it('should return error for validation failures', () => {
+            const result = str({ minLen: 5 }).safeParse('hi');
+            expect(result.type).toBe('error');
+            if (result.type === 'error') {
+                expect(result.issues[0].message).toBe('Value is too short');
+            }
+        });
+    });
 })

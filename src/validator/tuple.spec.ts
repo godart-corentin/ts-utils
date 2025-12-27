@@ -160,4 +160,23 @@ describe.concurrent('Tuple validator', () => {
             ]);
         });
     });
+
+    describe('safeParse', () => {
+        it('should return success for valid tuple', () => {
+            const result = tuple([str(), num()]).safeParse(['hello', 42]);
+            expect(result.type).toBe('success');
+            if (result.type === 'success') {
+                expect(result.data).toEqual(['hello', 42]);
+            }
+        });
+
+        it('should collect all tuple element errors', () => {
+            const result = tuple([str(), num(), bool()]).safeParse([123, 'invalid', 'yes']);
+            expect(result.type).toBe('error');
+            if (result.type === 'error') {
+                expect(result.issues).toHaveLength(3);
+                expect(result.issues.map(i => i.path)).toEqual(['[0]', '[1]', '[2]']);
+            }
+        });
+    });
 });

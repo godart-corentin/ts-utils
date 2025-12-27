@@ -1,5 +1,6 @@
 import type { AtLeastTwo } from "../types";
 import type { ExtractValidatorType, Validator } from "./common";
+import { withSafeParse } from "./common";
 import { ValidationError, type ValidationIssue } from "./error";
 
 // Extract tuple type from array of validators
@@ -12,7 +13,7 @@ type TupleValidator<T extends Validator[]> = Validator<InferTuple<T>>;
 export const tuple = <T extends Validator[]>(
     validators: AtLeastTwo<T, Validator>
 ): TupleValidator<T> => {
-    return {
+    return withSafeParse({
         parse(value): InferTuple<T> {
             if (!Array.isArray(value)) {
                 throw new ValidationError([{ message: 'Value is not an array', path: '' }]);
@@ -51,5 +52,5 @@ export const tuple = <T extends Validator[]>(
 
             return result as InferTuple<T>;
         }
-    }
+    });
 };

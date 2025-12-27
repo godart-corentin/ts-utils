@@ -67,4 +67,22 @@ describe.concurrent('Nullable validator', () => {
         expect(nullable(num()).parse(0)).toBe(0);
         expect(nullable(num()).parse(null)).toBe(null);
     });
+
+    describe('safeParse', () => {
+        it('should return success for null', () => {
+            const result = nullable(str()).safeParse(null);
+            expect(result.type).toBe('success');
+            if (result.type === 'success') {
+                expect(result.data).toBeNull();
+            }
+        });
+
+        it('should return success for valid value', () => {
+            const result = nullable(num()).safeParse(42);
+            expect(result.type).toBe('success');
+            if (result.type === 'success') {
+                expect(result.data).toBe(42);
+            }
+        });
+    });
 });

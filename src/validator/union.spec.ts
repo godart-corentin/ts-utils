@@ -55,4 +55,22 @@ describe.concurrent('Union validator', () => {
         expect(validator.parse(false)).toBe(false);
         expect(validator.parse(NaN)).toBe(NaN);
     });
+
+    describe('safeParse', () => {
+        it('should return success when union matches', () => {
+            const result = union([str(), num()]).safeParse('hello');
+            expect(result.type).toBe('success');
+            if (result.type === 'success') {
+                expect(result.data).toBe('hello');
+            }
+        });
+
+        it('should return error when none match', () => {
+            const result = union([str(), num()]).safeParse(true);
+            expect(result.type).toBe('error');
+            if (result.type === 'error') {
+                expect(result.issues[0].message).toBe('Value is not valid');
+            }
+        });
+    });
 })

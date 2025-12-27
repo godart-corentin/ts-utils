@@ -186,4 +186,30 @@ describe.concurrent('Nullish validator', () => {
             });
         });
     });
+
+    describe('safeParse', () => {
+        it('should return success for null', () => {
+            const result = nullish(str()).safeParse(null);
+            expect(result.type).toBe('success');
+            if (result.type === 'success') {
+                expect(result.data).toBeNull();
+            }
+        });
+
+        it('should return success for undefined', () => {
+            const result = nullish(num()).safeParse(undefined);
+            expect(result.type).toBe('success');
+            if (result.type === 'success') {
+                expect(result.data).toBeUndefined();
+            }
+        });
+
+        it('should return success for valid value', () => {
+            const result = nullish(str()).safeParse('hello');
+            expect(result.type).toBe('success');
+            if (result.type === 'success') {
+                expect(result.data).toBe('hello');
+            }
+        });
+    });
 });

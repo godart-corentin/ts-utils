@@ -1,5 +1,6 @@
 import type { AtLeastTwo } from "../types";
 import type { ExtractValidatorType, Validator } from "./common";
+import { withSafeParse } from "./common";
 import { ValidationError } from "./error";
 
 type UnionValidator<V extends Validator[]> = Validator<ExtractValidatorType<V[number]>>;
@@ -7,7 +8,7 @@ type UnionValidator<V extends Validator[]> = Validator<ExtractValidatorType<V[nu
 export const union = <V extends Validator[]>(
     validators: AtLeastTwo<V, Validator>
 ): UnionValidator<V> => {
-    return {
+    return withSafeParse({
         parse(value): ExtractValidatorType<V[number]> {
             for (const validator of validators) {
                 try {
@@ -19,5 +20,5 @@ export const union = <V extends Validator[]>(
 
             throw new ValidationError([{ message: 'Value is not valid', path: '' }]);
         }
-    }
+    });
 }

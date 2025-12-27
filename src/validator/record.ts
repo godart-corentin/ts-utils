@@ -1,4 +1,5 @@
 import type { ExtractValidatorType, Validator } from "./common";
+import { withSafeParse } from "./common";
 import { ValidationError, type ValidationIssue } from "./error";
 
 type RecordValidator<K extends Validator<string>, V extends Validator> = Validator<
@@ -9,7 +10,7 @@ export const record = <K extends Validator<string>, V extends Validator>(
     keyValidator: K,
     valueValidator: V
 ): RecordValidator<K, V> => {
-    return {
+    return withSafeParse({
         parse(value): Record<ExtractValidatorType<K>, ExtractValidatorType<V>> {
             if (value === null || value === undefined) {
                 throw new ValidationError([{ message: 'Value is not an object', path: '' }]);
@@ -23,12 +24,10 @@ export const record = <K extends Validator<string>, V extends Validator>(
             const result: Record<string, unknown> = {};
 
             Object.entries(value).forEach(([key, val]) => {
-                // Validate key
                 try {
                     keyValidator.parse(key);
                 } catch (error) {
                     if (error instanceof ValidationError) {
-                        // Add key validation error
                         const issuesWithPath = error.issues.map(issue => ({
                             message: issue.message,
                             path: `<key: ${key}>`
@@ -39,12 +38,10 @@ export const record = <K extends Validator<string>, V extends Validator>(
                     }
                 }
 
-                // Validate value
                 try {
                     result[key] = valueValidator.parse(val);
                 } catch (error) {
                     if (error instanceof ValidationError) {
-                        // Prepend the key to all issues
                         const issuesWithPath = error.issues.map(issue => ({
                             message: issue.message,
                             path: issue.path
@@ -64,5 +61,5 @@ export const record = <K extends Validator<string>, V extends Validator>(
 
             return result as Record<ExtractValidatorType<K>, ExtractValidatorType<V>>;
         }
-    }
+    });
 };

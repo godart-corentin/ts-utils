@@ -179,4 +179,30 @@ describe.concurrent('Optional validator', () => {
             });
         });
     });
+
+    describe('safeParse', () => {
+        it('should return success for undefined', () => {
+            const result = optional(str()).safeParse(undefined);
+            expect(result.type).toBe('success');
+            if (result.type === 'success') {
+                expect(result.data).toBeUndefined();
+            }
+        });
+
+        it('should return success for valid value', () => {
+            const result = optional(str()).safeParse('hello');
+            expect(result.type).toBe('success');
+            if (result.type === 'success') {
+                expect(result.data).toBe('hello');
+            }
+        });
+
+        it('should return error for invalid value', () => {
+            const result = optional(num()).safeParse('invalid');
+            expect(result.type).toBe('error');
+            if (result.type === 'error') {
+                expect(result.issues[0].message).toBe('Value is not a number');
+            }
+        });
+    });
 });

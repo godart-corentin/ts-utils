@@ -1,13 +1,13 @@
 import { Validator } from "./common";
+import { withSafeParse } from "./common";
 import { ValidationError } from "./error";
 
 type EnumValidator<T> = Validator<T>;
 
-export const nativeEnum = <T extends string | number>(enumObj: Record<string, T>): EnumValidator<T> => {
-    const values = Object.values<T>(enumObj);
-
-    return {
-        parse(value: unknown): T {
+export const nativeEnum = <T extends Record<string, string | number>>(enumObj: T): EnumValidator<T[keyof T]> => {
+    const values = Object.values(enumObj) as Array<T[keyof T]>;
+    return withSafeParse({
+        parse(value): T[keyof T] {
             const val = values.find((v) => v === value);
 
             if (val === undefined) {
@@ -16,5 +16,5 @@ export const nativeEnum = <T extends string | number>(enumObj: Record<string, T>
 
             return val;
         }
-    }
+    });
 }

@@ -89,4 +89,23 @@ describe.concurrent('Number validator', () => {
             expect(num().parse(Number.MIN_SAFE_INTEGER)).toBe(Number.MIN_SAFE_INTEGER);
         });
     });
+
+    describe('safeParse', () => {
+        it('should return success for valid number', () => {
+            const result = num().safeParse(42);
+            expect(result.type).toBe('success');
+            if (result.type === 'success') {
+                expect(result.data).toBe(42);
+            }
+        });
+
+        it('should return error for invalid number', () => {
+            const result = num().safeParse('hello');
+            expect(result.type).toBe('error');
+            if (result.type === 'error') {
+                expect(result.issues).toHaveLength(1);
+                expect(result.issues[0].message).toBe('Value is not a number');
+            }
+        });
+    });
 })

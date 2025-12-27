@@ -41,4 +41,22 @@ describe.concurrent("Literal validator", () => {
         expect(lit(-Infinity).parse(-Infinity)).toBe(-Infinity);
         // Note: NaN can't work with literal validator because NaN !== NaN
     });
+
+    describe('safeParse', () => {
+        it('should return success for matching literal', () => {
+            const result = lit('hello').safeParse('hello');
+            expect(result.type).toBe('success');
+            if (result.type === 'success') {
+                expect(result.data).toBe('hello');
+            }
+        });
+
+        it('should return error for non-matching literal', () => {
+            const result = lit(42).safeParse(43);
+            expect(result.type).toBe('error');
+            if (result.type === 'error') {
+                expect(result.issues[0].message).toBe('Value is not the literal');
+            }
+        });
+    });
 })

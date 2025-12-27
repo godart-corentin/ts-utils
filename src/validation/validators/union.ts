@@ -1,7 +1,8 @@
-import type { AtLeastTwo } from "../types";
-import type { ExtractValidatorType, Validator } from "./common";
-import { withSafeParse } from "./common";
-import { ValidationError } from "./error";
+import type { AtLeastTwo } from "../../types";
+import type { ExtractValidatorType, Validator } from "../common";
+import { withSafeParse } from "../withSafeParse";
+import { ValidationError } from "../error";
+import { getValueType } from "../getValueType";
 
 type UnionValidator<V extends Validator[]> = Validator<ExtractValidatorType<V[number]>>;
 
@@ -18,7 +19,8 @@ export const union = <V extends Validator[]>(
                 }
             }
 
-            throw new ValidationError([{ message: 'Value is not valid', path: '' }]);
+            const valueType = getValueType(value);
+            throw new ValidationError([{ message: `Value is ${valueType}, expected one of the union values`, path: '' }]);
         }
     });
 }

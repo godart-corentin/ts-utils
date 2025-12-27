@@ -1,4 +1,4 @@
-import { obj, str, bool } from "../src/validator";
+import { obj, str, bool } from "../src/validation";
 
 const userSchema = obj({
     firstName: str(),

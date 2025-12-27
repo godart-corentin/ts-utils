@@ -1,11 +1,11 @@
 import { describe, it, expect } from 'vitest';
 import { ValidationError } from './error';
-import { obj } from './object';
-import { str } from './string';
-import { num } from './number';
-import { arr } from './array';
-import { record } from './record';
-import { tuple } from './tuple';
+import { obj } from './validators/object';
+import { str } from './validators/string';
+import { num } from './validators/number';
+import { arr } from './validators/array';
+import { record } from './validators/record';
+import { tuple } from './validators/tuple';
 
 describe('ValidationError with paths', () => {
     describe('Object validation errors', () => {

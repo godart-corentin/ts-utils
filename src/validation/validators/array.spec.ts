@@ -7,7 +7,7 @@ import { union } from "./union";
 
 describe.concurrent('Array validator', () => {
     it('should throw an error if the value is not an array', () => {
-        expect(() => arr(str()).parse('hello')).toThrow('Value is not an array');
+        expect(() => arr(str()).parse('hello')).toThrow('Value is string, expected array');
     });
 
     it('should throw an error if the value is too short', () => {
@@ -32,7 +32,7 @@ describe.concurrent('Array validator', () => {
         it('should throw if any item is not valid for any union member', () => {
             const mixedArray = arr(union([str(), num()]));
 
-            expect(() => mixedArray.parse(['hello', 123, true])).toThrow('Value is not valid');
+            expect(() => mixedArray.parse(['hello', 123, true])).toThrow('Value is boolean, expected one of the union values');
         });
 
         it('should work with validation options on union members', () => {
@@ -42,8 +42,8 @@ describe.concurrent('Array validator', () => {
             ]));
 
             expect(strictArray.parse(['hello', 42, 'world', 99])).toEqual(['hello', 42, 'world', 99]);
-            expect(() => strictArray.parse(['hello', 200])).toThrow('Value is not valid'); // 200 > max
-            expect(() => strictArray.parse(['HELLO'])).toThrow('Value is not valid');
+            expect(() => strictArray.parse(['hello', 200])).toThrow('Value is number, expected one of the union values'); // 200 > max
+            expect(() => strictArray.parse(['HELLO'])).toThrow('Value is string, expected one of the union values');
         });
 
         it('should work with array length validation', () => {
@@ -67,14 +67,14 @@ describe.concurrent('Array validator', () => {
         });
 
         it('should validate all elements, not just first', () => {
-            expect(() => arr(num()).parse([1, 2, 'three', 4])).toThrow('Value is not a number');
-            expect(() => arr(str()).parse(['a', 'b', 'c', 123])).toThrow('Value is not a string');
+            expect(() => arr(num()).parse([1, 2, 'three', 4])).toThrow('Value is string, expected number');
+            expect(() => arr(str()).parse(['a', 'b', 'c', 123])).toThrow('Value is number, expected string');
         });
 
         it('should work with nested arrays', () => {
             const nestedValidator = arr(arr(num()));
             expect(nestedValidator.parse([[1, 2], [3, 4]])).toEqual([[1, 2], [3, 4]]);
-            expect(() => nestedValidator.parse([[1, 2], ['invalid']])).toThrow('Value is not a number');
+            expect(() => nestedValidator.parse([[1, 2], ['invalid']])).toThrow('Value is string, expected number');
         });
 
         it('should handle exact length validation', () => {
@@ -92,7 +92,7 @@ describe.concurrent('Array validator', () => {
         });
 
         it('should handle arrays with undefined values', () => {
-            expect(() => arr(str()).parse(['a', undefined, 'c'])).toThrow('Value is not a string');
+            expect(() => arr(str()).parse(['a', undefined, 'c'])).toThrow('Value is undefined, expected string');
         });
     });
 

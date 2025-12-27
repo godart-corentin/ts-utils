@@ -21,12 +21,12 @@ describe.concurrent('Optional validator', () => {
         });
 
         it('should reject null', () => {
-            expect(() => optional(str()).parse(null)).toThrow('Value is not a string');
+            expect(() => optional(str()).parse(null)).toThrow('Value is null, expected string');
         });
 
         it('should reject invalid values', () => {
-            expect(() => optional(str()).parse(123)).toThrow('Value is not a string');
-            expect(() => optional(num()).parse('hello')).toThrow('Value is not a number');
+            expect(() => optional(str()).parse(123)).toThrow('Value is number, expected string');
+            expect(() => optional(num()).parse('hello')).toThrow('Value is string, expected number');
         });
 
         it('should work with arrays', () => {
@@ -72,8 +72,8 @@ describe.concurrent('Optional validator', () => {
         });
 
         it('should still validate non-undefined values', () => {
-            expect(() => optional(str(), 'default').parse(123)).toThrow('Value is not a string');
-            expect(() => optional(num(), 0).parse('hello')).toThrow('Value is not a number');
+            expect(() => optional(str(), 'default').parse(123)).toThrow('Value is number, expected string');
+            expect(() => optional(num(), 0).parse('hello')).toThrow('Value is string, expected number');
         });
 
         it('should work with empty string as default', () => {
@@ -201,7 +201,7 @@ describe.concurrent('Optional validator', () => {
             const result = optional(num()).safeParse('invalid');
             expect(result.type).toBe('error');
             if (result.type === 'error') {
-                expect(result.issues[0].message).toBe('Value is not a number');
+                expect(result.issues[0].message).toBe('Value is string, expected number');
             }
         });
     });

@@ -1,6 +1,7 @@
-import type { ExtractValidatorType, Validator } from "./common";
-import { withSafeParse } from "./common";
-import { ValidationError, type ValidationIssue } from "./error";
+import type { ExtractValidatorType, Validator } from "../common";
+import { withSafeParse } from "../withSafeParse";
+import { ValidationError, type ValidationIssue } from "../error";
+import { getValueType } from "../getValueType";
 
 type ArrayOptions = {
     minLen?: number;
@@ -13,15 +14,19 @@ export const arr = <V extends Validator>(arrayValidator: V, opts?: ArrayOptions)
     return withSafeParse({
         parse(value): ExtractValidatorType<V>[] {
             if (!Array.isArray(value)) {
-                throw new ValidationError([{ message: 'Value is not an array', path: '' }]);
+                const valueType = getValueType(value);
+                throw new ValidationError([{
+                    message: `Value is ${valueType}, expected array`,
+                    path: ''
+                }]);
             }
 
             if (opts?.minLen && value.length < opts.minLen) {
-                throw new ValidationError([{ message: 'Value is too short', path: '' }]);
+                throw new ValidationError([{ message: `Value is too short, expected at least ${opts.minLen} elements`, path: '' }]);
             }
 
             if (opts?.maxLen && value.length > opts.maxLen) {
-                throw new ValidationError([{ message: 'Value is too long', path: '' }]);
+                throw new ValidationError([{ message: `Value is too long, expected at most ${opts.maxLen} elements`, path: '' }]);
             }
 
             const issues: ValidationIssue[] = [];

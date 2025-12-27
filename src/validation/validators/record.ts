@@ -1,6 +1,7 @@
-import type { ExtractValidatorType, Validator } from "./common";
-import { withSafeParse } from "./common";
-import { ValidationError, type ValidationIssue } from "./error";
+import type { ExtractValidatorType, Validator } from "../common";
+import { withSafeParse } from "../withSafeParse";
+import { ValidationError, type ValidationIssue } from "../error";
+import { getValueType } from "../getValueType";
 
 type RecordValidator<K extends Validator<string>, V extends Validator> = Validator<
     Record<ExtractValidatorType<K>, ExtractValidatorType<V>>
@@ -12,12 +13,9 @@ export const record = <K extends Validator<string>, V extends Validator>(
 ): RecordValidator<K, V> => {
     return withSafeParse({
         parse(value): Record<ExtractValidatorType<K>, ExtractValidatorType<V>> {
-            if (value === null || value === undefined) {
-                throw new ValidationError([{ message: 'Value is not an object', path: '' }]);
-            }
-
-            if (typeof value !== 'object' || Array.isArray(value) || value instanceof Date) {
-                throw new ValidationError([{ message: 'Value is not an object', path: '' }]);
+            if (value === null || value === undefined || typeof value !== 'object' || Array.isArray(value) || value instanceof Date) {
+                const valueType = getValueType(value);
+                throw new ValidationError([{ message: `Value is ${valueType}, expected object`, path: '' }]);
             }
 
             const issues: ValidationIssue[] = [];

@@ -1,6 +1,7 @@
-import type { Validator } from "./common";
-import { withSafeParse } from "./common";
-import { ValidationError } from "./error";
+import type { Validator } from "../common";
+import { withSafeParse } from "../withSafeParse";
+import { ValidationError } from "../error";
+import { getValueType } from "../getValueType";
 
 type StringOptions = {
     minLen?: number;
@@ -19,7 +20,11 @@ export const str = (opts?: StringOptions): StringValidator => {
             const val = opts?.coerce ? coerceString(value) : value;
 
             if (typeof val !== 'string') {
-                throw new ValidationError([{ message: 'Value is not a string', path: '' }]);
+                const valueType = getValueType(val);
+                throw new ValidationError([{
+                    message: `Value is ${valueType}, expected string`,
+                    path: ''
+                }]);
             }
 
             if (opts?.minLen && val.length < opts.minLen) {

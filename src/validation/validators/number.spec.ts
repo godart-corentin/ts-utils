@@ -4,15 +4,17 @@ import { num } from "./number";
 describe.concurrent('Number validator', () => {
     describe('strict mode (default)', () => {
         it('should throw an error if the value is not a number', () => {
-            expect(() => num().parse('3')).toThrow('Value is not a number');
+            expect(() => num().parse('3')).toThrow('Value is string, expected number');
+            expect(() => num().parse(null)).toThrow('Value is null, expected number');
+            expect(() => num().parse(undefined)).toThrow('Value is undefined, expected number');
         });
 
         it('should throw an error if the value is too short', () => {
-            expect(() => num({ min: 5 }).parse(4)).toThrow('Value is too short');
+            expect(() => num({ min: 5 }).parse(4)).toThrow('Value is too small, expected at least 5');
         });
 
         it('should throw an error if the value is too big', () => {
-            expect(() => num({ max: 5 }).parse(6)).toThrow('Value is too big');
+            expect(() => num({ max: 5 }).parse(6)).toThrow('Value is too big, expected at most 5');
         });
 
         it('should return the value if it is valid', () => {
@@ -43,8 +45,8 @@ describe.concurrent('Number validator', () => {
         });
 
         it('should apply min/max validation after coercion', () => {
-            expect(() => num({ coerce: true, min: 5 }).parse('4')).toThrow('Value is too short');
-            expect(() => num({ coerce: true, max: 5 }).parse('6')).toThrow('Value is too big');
+            expect(() => num({ coerce: true, min: 5 }).parse('4')).toThrow('Value is too small, expected at least 5');
+            expect(() => num({ coerce: true, max: 5 }).parse('6')).toThrow('Value is too big, expected at most 5');
             expect(num({ coerce: true, min: 5, max: 10 }).parse('7')).toBe(7);
         });
     });
@@ -104,7 +106,7 @@ describe.concurrent('Number validator', () => {
             expect(result.type).toBe('error');
             if (result.type === 'error') {
                 expect(result.issues).toHaveLength(1);
-                expect(result.issues[0].message).toBe('Value is not a number');
+                expect(result.issues[0].message).toBe('Value is string, expected number');
             }
         });
     });

@@ -8,18 +8,18 @@ import { union } from "./union";
 
 describe.concurrent("Object validator", () => {
     it("should throw an error if the value is not an object", () => {
-        expect(() => obj({}).parse('hello')).toThrow('Value is not an object');
-        expect(() => obj({}).parse(null)).toThrow('Value is not an object');
-        expect(() => obj({}).parse(undefined)).toThrow('Value is not an object');
-        expect(() => obj({}).parse([])).toThrow('Value is not an object');
+        expect(() => obj({}).parse('hello')).toThrow('Value is string, expected object');
+        expect(() => obj({}).parse(null)).toThrow('Value is null, expected object');
+        expect(() => obj({}).parse(undefined)).toThrow('Value is undefined, expected object');
+        expect(() => obj({}).parse([])).toThrow('Value is array, expected object');
     });
 
     it('should throw if the object does not match the schema', () => {
         // Missing properties pass undefined to validators, which then throw their own errors
         // When multiple properties fail, we get a multi-error message
         expect(() => obj({ a: str(), b: num() }).parse({})).toThrow('Validation failed with 2 error(s)');
-        expect(() => obj({ a: str(), b: bool() }).parse({ a: 'hello', b: 'world' })).toThrow('Value is not a boolean');
-        expect(() => obj({ a: str(), b: arr(str()) }).parse({ a: 'hello', b: true })).toThrow('Value is not an array');
+        expect(() => obj({ a: str(), b: bool() }).parse({ a: 'hello', b: 'world' })).toThrow('Value is string, expected boolean');
+        expect(() => obj({ a: str(), b: arr(str()) }).parse({ a: 'hello', b: true })).toThrow('Value is boolean, expected array');
     });
 
     it("should return the value if it is valid", () => {
@@ -62,7 +62,7 @@ describe.concurrent("Object validator", () => {
             name: 'John',
             age: 30,
             address: { street: '123 Main St' } // missing city
-        })).toThrow('Value is not a string');
+        })).toThrow('Value is undefined, expected string');
     });
 
     it("should work with complex schemas", () => {
@@ -117,23 +117,23 @@ describe.concurrent("Object validator", () => {
         });
 
         it('should reject null and undefined', () => {
-            expect(() => obj({ a: str() }).parse(null)).toThrow('Value is not an object');
-            expect(() => obj({ a: str() }).parse(undefined)).toThrow('Value is not an object');
+            expect(() => obj({ a: str() }).parse(null)).toThrow('Value is null, expected object');
+            expect(() => obj({ a: str() }).parse(undefined)).toThrow('Value is undefined, expected object');
         });
 
         it('should reject arrays', () => {
-            expect(() => obj({ a: str() }).parse([])).toThrow('Value is not an object');
-            expect(() => obj({ a: str() }).parse([1, 2, 3])).toThrow('Value is not an object');
+            expect(() => obj({ a: str() }).parse([])).toThrow('Value is array, expected object');
+            expect(() => obj({ a: str() }).parse([1, 2, 3])).toThrow('Value is array, expected object');
         });
 
         it('should reject Date objects', () => {
-            expect(() => obj({ a: str() }).parse(new Date())).toThrow('Value is not an object');
+            expect(() => obj({ a: str() }).parse(new Date())).toThrow('Value is date, expected object');
         });
 
         it('should handle objects with undefined values', () => {
             // Missing properties pass undefined, which str()/num() will reject
-            expect(() => obj({ a: str(), b: num() }).parse({ a: 'test' })).toThrow('Value is not a number');
-            expect(() => obj({ a: str(), b: num() }).parse({ a: 'test', b: undefined })).toThrow('Value is not a number');
+            expect(() => obj({ a: str(), b: num() }).parse({ a: 'test' })).toThrow('Value is undefined, expected number');
+            expect(() => obj({ a: str(), b: num() }).parse({ a: 'test', b: undefined })).toThrow('Value is undefined, expected number');
         });
 
         it('should work with deeply nested objects', () => {
@@ -163,8 +163,8 @@ describe.concurrent("Object validator", () => {
         it('should validate all properties', () => {
             const validator = obj({ a: str(), b: num(), c: bool() });
 
-            expect(() => validator.parse({ a: 'test', b: 'invalid', c: true })).toThrow('Value is not a number');
-            expect(() => validator.parse({ a: 'test', b: 123, c: 'invalid' })).toThrow('Value is not a boolean');
+            expect(() => validator.parse({ a: 'test', b: 'invalid', c: true })).toThrow('Value is string, expected number');
+            expect(() => validator.parse({ a: 'test', b: 123, c: 'invalid' })).toThrow('Value is string, expected boolean');
         });
 
         it('should work with mixed nested structures', () => {

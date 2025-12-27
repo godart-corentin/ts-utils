@@ -7,11 +7,11 @@ import { lit } from "./literal";
 
 describe.concurrent('Union validator', () => {
     it('should throw an error if the value is not a string or number', () => {
-        expect(() => union([str(), num()]).parse(true)).toThrow('Value is not valid');
+        expect(() => union([str(), num()]).parse(true)).toThrow('Value is boolean, expected one of the union values');
     });
 
     it('should throw an error if the value is not valid for any of the validators', () => {
-        expect(() => union([str({ pattern: 'hello' }), str({ pattern: 'world' })]).parse('1234')).toThrow('Value is not valid');
+        expect(() => union([str({ pattern: 'hello' }), str({ pattern: 'world' })]).parse('1234')).toThrow('Value is string, expected one of the union values');
     });
 
     it('should return the value if it is valid', () => {
@@ -31,14 +31,14 @@ describe.concurrent('Union validator', () => {
         expect(validator.parse('hello')).toBe('hello');
         expect(validator.parse(42)).toBe(42);
         expect(validator.parse(true)).toBe(true);
-        expect(() => validator.parse(null)).toThrow('Value is not valid');
+        expect(() => validator.parse(null)).toThrow('Value is null, expected one of the union values');
     });
 
     it('should work with literal validators in union', () => {
         const status = union([lit('pending'), lit('approved'), lit('rejected')]);
         expect(status.parse('pending')).toBe('pending');
         expect(status.parse('approved')).toBe('approved');
-        expect(() => status.parse('unknown')).toThrow('Value is not valid');
+        expect(() => status.parse('unknown')).toThrow('Value is string, expected one of the union values');
     });
 
     it('should work with coercion in union members', () => {
@@ -69,7 +69,7 @@ describe.concurrent('Union validator', () => {
             const result = union([str(), num()]).safeParse(true);
             expect(result.type).toBe('error');
             if (result.type === 'error') {
-                expect(result.issues[0].message).toBe('Value is not valid');
+                expect(result.issues[0].message).toBe('Value is boolean, expected one of the union values');
             }
         });
     });

@@ -1,5 +1,5 @@
-import type { ExtractValidatorType, Validator } from "./common";
-import { withSafeParse } from "./common";
+import type { ExtractValidatorType, Validator } from "../common";
+import { withSafeParse } from "../withSafeParse";
 
 // Overload signatures for better type inference
 export function nullish<V extends Validator>(

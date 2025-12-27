@@ -1,6 +1,7 @@
-import type { Validator } from "./common";
-import { withSafeParse } from "./common";
-import { ValidationError } from "./error";
+import type { Validator } from "../common";
+import { withSafeParse } from "../withSafeParse";
+import { ValidationError } from "../error";
+import { getValueType } from "../getValueType";
 
 type BooleanOptions = {
     coerce?: boolean;
@@ -20,7 +21,11 @@ export const bool = (opts?: BooleanOptions): BooleanValidator => {
             const val = opts?.coerce ? coerceBoolean(value) : value;
 
             if (typeof val !== 'boolean') {
-                throw new ValidationError([{ message: 'Value is not a boolean', path: '' }]);
+                const valueType = getValueType(val);
+                throw new ValidationError([{
+                    message: `Value is ${valueType}, expected boolean`,
+                    path: ''
+                }]);
             }
 
             return val;

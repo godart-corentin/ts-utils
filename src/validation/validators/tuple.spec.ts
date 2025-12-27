@@ -11,9 +11,11 @@ import { lit } from "./literal";
 
 describe.concurrent('Tuple validator', () => {
     it('should throw an error if the value is not an array', () => {
-        expect(() => tuple([str(), num()]).parse('hello')).toThrow('Value is not an array');
-        expect(() => tuple([str(), num()]).parse(123)).toThrow('Value is not an array');
-        expect(() => tuple([str(), num()]).parse({})).toThrow('Value is not an array');
+        expect(() => tuple([str(), num()]).parse('hello')).toThrow('Value is string, expected array');
+        expect(() => tuple([str(), num()]).parse(123)).toThrow('Value is number, expected array');
+        expect(() => tuple([str(), num()]).parse({})).toThrow('Value is object, expected array');
+        expect(() => tuple([str(), num()]).parse(null)).toThrow('Value is null, expected array');
+        expect(() => tuple([str(), num()]).parse(undefined)).toThrow('Value is undefined, expected array');
     });
 
     it('should throw an error if length does not match', () => {
@@ -23,9 +25,9 @@ describe.concurrent('Tuple validator', () => {
 
     it('should validate each element with corresponding validator', () => {
         // First element (123) should be string but is number
-        expect(() => tuple([str(), num()]).parse([123, 456])).toThrow('Value is not a string');
-        expect(() => tuple([str(), num()]).parse(['hello', 'world'])).toThrow('Value is not a number');
-        expect(() => tuple([num(), num(), num()]).parse([1, 2, 'three'])).toThrow('Value is not a number');
+        expect(() => tuple([str(), num()]).parse([123, 456])).toThrow('Value is number, expected string');
+        expect(() => tuple([str(), num()]).parse(['hello', 'world'])).toThrow('Value is string, expected number');
+        expect(() => tuple([num(), num(), num()]).parse([1, 2, 'three'])).toThrow('Value is string, expected number');
     });
 
     it('should return the value if it is valid', () => {
@@ -67,7 +69,7 @@ describe.concurrent('Tuple validator', () => {
 
         expect(validator.parse(['hello', true])).toEqual(['hello', true]);
         expect(validator.parse([123, false])).toEqual([123, false]);
-        expect(() => validator.parse([true, true])).toThrow('Value is not valid');
+        expect(() => validator.parse([true, true])).toThrow('Value is boolean, expected one of the union values');
     });
 
     it('should work with nullable validators', () => {
@@ -94,7 +96,7 @@ describe.concurrent('Tuple validator', () => {
 
         expect(httpResponse.parse([200, 'OK'])).toEqual([200, 'OK']);
         expect(httpResponse.parse([404, 'Not Found'])).toEqual([404, 'Not Found']);
-        expect(() => httpResponse.parse([201, 'Created'])).toThrow('Value is not valid');
+        expect(() => httpResponse.parse([201, 'Created'])).toThrow('Value is number, expected one of the union values');
     });
 
     it('should work with validation options', () => {

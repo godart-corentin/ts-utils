@@ -4,10 +4,12 @@ import { bool } from "./boolean";
 describe.concurrent('Boolean validator', () => {
     describe('strict mode (default)', () => {
         it('should throw an error if the value is not a boolean', () => {
-            expect(() => bool().parse('hello')).toThrow('Value is not a boolean');
-            expect(() => bool().parse('true')).toThrow('Value is not a boolean');
-            expect(() => bool().parse(1)).toThrow('Value is not a boolean');
-            expect(() => bool().parse(0)).toThrow('Value is not a boolean');
+            expect(() => bool().parse('hello')).toThrow('Value is string, expected boolean');
+            expect(() => bool().parse('true')).toThrow('Value is string, expected boolean');
+            expect(() => bool().parse(1)).toThrow('Value is number, expected boolean');
+            expect(() => bool().parse(0)).toThrow('Value is number, expected boolean');
+            expect(() => bool().parse(null)).toThrow('Value is null, expected boolean');
+            expect(() => bool().parse(undefined)).toThrow('Value is undefined, expected boolean');
         });
 
         it('should return the value if it is a boolean', () => {
@@ -53,10 +55,10 @@ describe.concurrent('Boolean validator', () => {
 
     describe('edge cases', () => {
         it('should only accept boolean in strict mode', () => {
-            expect(() => bool().parse(0)).toThrow('Value is not a boolean');
-            expect(() => bool().parse(1)).toThrow('Value is not a boolean');
-            expect(() => bool().parse('')).toThrow('Value is not a boolean');
-            expect(() => bool().parse('false')).toThrow('Value is not a boolean');
+            expect(() => bool().parse(0)).toThrow('Value is number, expected boolean');
+            expect(() => bool().parse(1)).toThrow('Value is number, expected boolean');
+            expect(() => bool().parse('')).toThrow('Value is string, expected boolean');
+            expect(() => bool().parse('false')).toThrow('Value is string, expected boolean');
         });
 
         it('should handle case sensitivity in coerce mode', () => {
@@ -99,7 +101,7 @@ describe.concurrent('Boolean validator', () => {
             const result = bool().safeParse('yes');
             expect(result.type).toBe('error');
             if (result.type === 'error') {
-                expect(result.issues[0].message).toBe('Value is not a boolean');
+                expect(result.issues[0].message).toBe('Value is string, expected boolean');
             }
         });
     });

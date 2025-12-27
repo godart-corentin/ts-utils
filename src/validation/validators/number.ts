@@ -1,6 +1,7 @@
-import type { Validator } from "./common";
-import { withSafeParse } from "./common";
-import { ValidationError } from "./error";
+import type { Validator } from "../common";
+import { withSafeParse } from "../withSafeParse";
+import { ValidationError } from "../error";
+import { getValueType } from "../getValueType";
 
 type NumberOptions = {
     min?: number;
@@ -22,15 +23,19 @@ export const num = (opts?: NumberOptions): Validator<number> => {
             const val = opts?.coerce ? coerceNumber(value) : value;
 
             if (typeof val !== 'number') {
-                throw new ValidationError([{ message: 'Value is not a number', path: '' }]);
+                const valueType = getValueType(val);
+                throw new ValidationError([{
+                    message: `Value is ${valueType}, expected number`,
+                    path: ''
+                }]);
             }
 
             if (opts?.min && val < opts.min) {
-                throw new ValidationError([{ message: 'Value is too short', path: '' }]);
+                throw new ValidationError([{ message: `Value is too small, expected at least ${opts.min}`, path: '' }]);
             }
 
             if (opts?.max && val > opts.max) {
-                throw new ValidationError([{ message: 'Value is too big', path: '' }]);
+                throw new ValidationError([{ message: `Value is too big, expected at most ${opts.max}`, path: '' }]);
             }
 
             return val;

@@ -1,6 +1,7 @@
-import type { ExtractValidatorType, Validator } from "./common";
-import { withSafeParse } from "./common";
-import { ValidationError, type ValidationIssue } from "./error";
+import type { ExtractValidatorType, Validator } from "../common";
+import { withSafeParse } from "../withSafeParse";
+import { ValidationError, type ValidationIssue } from "../error";
+import { getValueType } from "../getValueType";
 
 // Extract the parsed object type from a schema
 type InferObjectType<Schema extends Record<string, Validator>> = {
@@ -12,12 +13,12 @@ type ObjectValidator<Schema extends Record<string, Validator>> = Validator<Infer
 export const obj = <Schema extends Record<string, Validator>>(schema: Schema): ObjectValidator<Schema> => {
     return withSafeParse({
         parse(value): InferObjectType<Schema> {
-            if (value === null || value === undefined) {
-                throw new ValidationError([{ message: 'Value is not an object', path: '' }]);
-            }
-
-            if (typeof value !== 'object' || Array.isArray(value) || value instanceof Date) {
-                throw new ValidationError([{ message: 'Value is not an object', path: '' }]);
+            if (value === null || value === undefined || typeof value !== 'object' || Array.isArray(value) || value instanceof Date) {
+                const valueType = getValueType(value);
+                throw new ValidationError([{
+                    message: `Value is ${valueType}, expected object`,
+                    path: ''
+                }]);
             }
 
             const issues: ValidationIssue[] = [];

@@ -1,4 +1,5 @@
 import type { Validator } from "./common";
+import { ValidationError } from "./error";
 
 type BooleanOptions = {
     coerce?: boolean;
@@ -20,7 +21,7 @@ export const bool = (opts?: BooleanOptions): BooleanValidator => {
             const val = opts?.coerce ? coerceBoolean(value) : value;
 
             if (typeof val !== 'boolean') {
-                throw new Error('Value is not a boolean');
+                throw new ValidationError([{ message: 'Value is not a boolean', path: '' }]);
             }
 
             return val;

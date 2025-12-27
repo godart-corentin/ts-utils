@@ -1,4 +1,5 @@
 import type { ExtractValidatorType, Validator } from "./common";
+import { ValidationError, type ValidationIssue } from "./error";
 
 // Extract the parsed object type from a schema
 type InferObjectType<Schema extends Record<string, Validator>> = {
@@ -11,21 +12,41 @@ export const obj = <Schema extends Record<string, Validator>>(schema: Schema): O
     return {
         parse(value): InferObjectType<Schema> {
             if (value === null || value === undefined) {
-                throw new Error('Value is not an object');
+                throw new ValidationError([{ message: 'Value is not an object', path: '' }]);
             }
 
             if (typeof value !== 'object' || Array.isArray(value) || value instanceof Date) {
-                throw new Error('Value is not an object');
+                throw new ValidationError([{ message: 'Value is not an object', path: '' }]);
             }
 
-            const result = Object.fromEntries(
-                Object.entries(schema).map(([key, validator]) => {
-                    const inputValue = value[key as keyof typeof value];
+            const issues: ValidationIssue[] = [];
+            const result: Record<string, unknown> = {};
 
-                    // Let the validator handle undefined - this allows optional() with defaults to work
-                    return [key, validator.parse(inputValue)];
-                })
-            );
+            Object.entries(schema).forEach(([key, validator]) => {
+                const inputValue = value[key as keyof typeof value];
+
+                try {
+                    result[key] = validator.parse(inputValue);
+                } catch (error) {
+                    if (error instanceof ValidationError) {
+                        // Prepend the property name to all issues
+                        const issuesWithPath = error.issues.map(issue => ({
+                            message: issue.message,
+                            path: issue.path
+                                ? (issue.path.startsWith('[') ? `${key}${issue.path}` : `${key}.${issue.path}`)
+                                : key
+                        }));
+                        issues.push(...issuesWithPath);
+                    } else {
+                        // Non-validation error, re-throw
+                        throw error;
+                    }
+                }
+            });
+
+            if (issues.length > 0) {
+                throw new ValidationError(issues);
+            }
 
             return result as InferObjectType<Schema>;
         }

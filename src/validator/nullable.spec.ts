@@ -32,7 +32,8 @@ describe.concurrent('Nullable validator', () => {
     it('should work with arrays', () => {
         expect(nullable(arr(str())).parse(null)).toBe(null);
         expect(nullable(arr(str())).parse(['a', 'b'])).toEqual(['a', 'b']);
-        expect(() => nullable(arr(str())).parse([1, 2])).toThrow('Value is not a string');
+        // Multiple array items failing validation results in multi-error message
+        expect(() => nullable(arr(str())).parse([1, 2])).toThrow('Validation failed with 2 error(s)');
     });
 
     it('should work with objects', () => {

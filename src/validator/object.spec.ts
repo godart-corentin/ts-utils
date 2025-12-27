@@ -16,7 +16,8 @@ describe.concurrent("Object validator", () => {
 
     it('should throw if the object does not match the schema', () => {
         // Missing properties pass undefined to validators, which then throw their own errors
-        expect(() => obj({ a: str(), b: num() }).parse({})).toThrow('Value is not a string');
+        // When multiple properties fail, we get a multi-error message
+        expect(() => obj({ a: str(), b: num() }).parse({})).toThrow('Validation failed with 2 error(s)');
         expect(() => obj({ a: str(), b: bool() }).parse({ a: 'hello', b: 'world' })).toThrow('Value is not a boolean');
         expect(() => obj({ a: str(), b: arr(str()) }).parse({ a: 'hello', b: true })).toThrow('Value is not an array');
     });

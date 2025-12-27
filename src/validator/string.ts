@@ -1,4 +1,5 @@
 import type { Validator } from "./common";
+import { ValidationError } from "./error";
 
 type StringOptions = {
     minLen?: number;
@@ -17,19 +18,19 @@ export const str = (opts?: StringOptions): StringValidator => {
             const val = opts?.coerce ? coerceString(value) : value;
 
             if (typeof val !== 'string') {
-                throw new Error('Value is not a string');
+                throw new ValidationError([{ message: 'Value is not a string', path: '' }]);
             }
 
             if (opts?.minLen && val.length < opts.minLen) {
-                throw new Error('Value is too short');
+                throw new ValidationError([{ message: 'Value is too short', path: '' }]);
             }
 
             if (opts?.maxLen && val.length > opts.maxLen) {
-                throw new Error('Value is too long');
+                throw new ValidationError([{ message: 'Value is too long', path: '' }]);
             }
 
             if (opts?.pattern && !new RegExp(opts.pattern).test(val)) {
-                throw new Error('Value does not match the pattern');
+                throw new ValidationError([{ message: 'Value does not match the pattern', path: '' }]);
             }
 
             return val;

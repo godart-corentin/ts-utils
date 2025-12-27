@@ -1,4 +1,5 @@
 import type { Validator } from "./common";
+import { ValidationError } from "./error";
 
 type LiteralType = string | number | boolean | null | undefined;
 
@@ -8,7 +9,7 @@ export const lit = <T extends LiteralType>(literal: T): LiteralValidator<T> => {
     return {
         parse(value): T {
             if (value !== literal) {
-                throw new Error('Value is not the literal');
+                throw new ValidationError([{ message: 'Value is not the literal', path: '' }]);
             }
 
             return value as T;

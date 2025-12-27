@@ -1,5 +1,6 @@
 import type { AtLeastTwo } from "../types";
 import type { ExtractValidatorType, Validator } from "./common";
+import { ValidationError } from "./error";
 
 type UnionValidator<V extends Validator[]> = Validator<ExtractValidatorType<V[number]>>;
 
@@ -16,7 +17,7 @@ export const union = <V extends Validator[]>(
                 }
             }
 
-            throw new Error('Value is not valid');
+            throw new ValidationError([{ message: 'Value is not valid', path: '' }]);
         }
     }
 }

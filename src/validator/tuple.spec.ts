@@ -22,6 +22,7 @@ describe.concurrent('Tuple validator', () => {
     });
 
     it('should validate each element with corresponding validator', () => {
+        // First element (123) should be string but is number
         expect(() => tuple([str(), num()]).parse([123, 456])).toThrow('Value is not a string');
         expect(() => tuple([str(), num()]).parse(['hello', 'world'])).toThrow('Value is not a number');
         expect(() => tuple([num(), num(), num()]).parse([1, 2, 'three'])).toThrow('Value is not a number');
@@ -40,7 +41,7 @@ describe.concurrent('Tuple validator', () => {
     it('should work with nested arrays', () => {
         const validator = tuple([arr(str()), arr(num())]);
         expect(validator.parse([['a', 'b'], [1, 2]])).toEqual([['a', 'b'], [1, 2]]);
-        expect(() => validator.parse([['a', 'b'], ['c', 'd']])).toThrow('Value is not a number');
+        expect(() => validator.parse([['a', 'b'], ['c', 'd']])).toThrow('Validation failed with 2 error(s)');
     });
 
     it('should work with objects', () => {

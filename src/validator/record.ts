@@ -1,4 +1,5 @@
 import type { ExtractValidatorType, Validator } from "./common";
+import { ValidationError, type ValidationIssue } from "./error";
 
 type RecordValidator<K extends Validator<string>, V extends Validator> = Validator<
     Record<ExtractValidatorType<K>, ExtractValidatorType<V>>
@@ -11,20 +12,55 @@ export const record = <K extends Validator<string>, V extends Validator>(
     return {
         parse(value): Record<ExtractValidatorType<K>, ExtractValidatorType<V>> {
             if (value === null || value === undefined) {
-                throw new Error('Value is not an object');
+                throw new ValidationError([{ message: 'Value is not an object', path: '' }]);
             }
 
             if (typeof value !== 'object' || Array.isArray(value) || value instanceof Date) {
-                throw new Error('Value is not an object');
+                throw new ValidationError([{ message: 'Value is not an object', path: '' }]);
             }
 
-            const result = Object.fromEntries(
-                Object.entries(value).map(([key, val]) => {
-                    const validatedKey = keyValidator.parse(key) as ExtractValidatorType<K>;
-                    const validatedValue = valueValidator.parse(val) as ExtractValidatorType<V>;
-                    return [validatedKey, validatedValue];
-                })
-            );
+            const issues: ValidationIssue[] = [];
+            const result: Record<string, unknown> = {};
+
+            Object.entries(value).forEach(([key, val]) => {
+                // Validate key
+                try {
+                    keyValidator.parse(key);
+                } catch (error) {
+                    if (error instanceof ValidationError) {
+                        // Add key validation error
+                        const issuesWithPath = error.issues.map(issue => ({
+                            message: issue.message,
+                            path: `<key: ${key}>`
+                        }));
+                        issues.push(...issuesWithPath);
+                    } else {
+                        throw error;
+                    }
+                }
+
+                // Validate value
+                try {
+                    result[key] = valueValidator.parse(val);
+                } catch (error) {
+                    if (error instanceof ValidationError) {
+                        // Prepend the key to all issues
+                        const issuesWithPath = error.issues.map(issue => ({
+                            message: issue.message,
+                            path: issue.path
+                                ? (issue.path.startsWith('[') ? `${key}${issue.path}` : `${key}.${issue.path}`)
+                                : key
+                        }));
+                        issues.push(...issuesWithPath);
+                    } else {
+                        throw error;
+                    }
+                }
+            });
+
+            if (issues.length > 0) {
+                throw new ValidationError(issues);
+            }
 
             return result as Record<ExtractValidatorType<K>, ExtractValidatorType<V>>;
         }

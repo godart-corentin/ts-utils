@@ -29,12 +29,12 @@ export const arr = <V extends Validator>(arrayValidator: V, opts?: ArrayOptions)
                 throw new ValidationError([{ message: `Value is too long, expected at most ${opts.maxLen} elements`, path: '' }]);
             }
 
-            const issues: ValidationIssue[] = [];
-            const result: unknown[] = [];
-
-            value.forEach((item, index) => {
+            const { result, issues } = value.reduce<{ result: unknown[], issues: ValidationIssue[] }>((acc, item, index) => {
                 try {
-                    result.push(arrayValidator.parse(item));
+                    return {
+                        ...acc,
+                        result: [...acc.result, arrayValidator.parse(item)]
+                    }
                 } catch (error) {
                     if (error instanceof ValidationError) {
                         // Prepend the array index to all issues
@@ -44,13 +44,16 @@ export const arr = <V extends Validator>(arrayValidator: V, opts?: ArrayOptions)
                                 ? (issue.path.startsWith('[') ? `[${index}]${issue.path}` : `[${index}].${issue.path}`)
                                 : `[${index}]`
                         }));
-                        issues.push(...issuesWithPath);
+                        return {
+                            ...acc,
+                            issues: [...acc.issues, ...issuesWithPath]
+                        }
                     } else {
                         // Non-validation error, re-throw
                         throw error;
                     }
                 }
-            });
+            }, { result: [], issues: [] });
 
             if (issues.length > 0) {
                 throw new ValidationError(issues);

@@ -18,10 +18,7 @@ export const record = <K extends Validator<string>, V extends Validator>(
                 throw new ValidationError([{ message: `Value is ${valueType}, expected object`, path: '' }]);
             }
 
-            const issues: ValidationIssue[] = [];
-            const result: Record<string, unknown> = {};
-
-            Object.entries(value).forEach(([key, val]) => {
+            const { result, issues } = Object.entries(value).reduce<{ result: Record<string, unknown>, issues: ValidationIssue[] }>((acc, [key, val]) => {
                 try {
                     keyValidator.parse(key);
                 } catch (error) {
@@ -30,14 +27,21 @@ export const record = <K extends Validator<string>, V extends Validator>(
                             message: issue.message,
                             path: `<key: ${key}>`
                         }));
-                        issues.push(...issuesWithPath);
+                        return {
+                            ...acc,
+                            issues: [...acc.issues, ...issuesWithPath]
+                        };
                     } else {
                         throw error;
                     }
                 }
 
                 try {
-                    result[key] = valueValidator.parse(val);
+                    const parsedValue = valueValidator.parse(val);
+                    return {
+                        ...acc,
+                        result: { ...acc.result, [key]: parsedValue }
+                    };
                 } catch (error) {
                     if (error instanceof ValidationError) {
                         const issuesWithPath = error.issues.map(issue => ({
@@ -46,12 +50,15 @@ export const record = <K extends Validator<string>, V extends Validator>(
                                 ? (issue.path.startsWith('[') ? `${key}${issue.path}` : `${key}.${issue.path}`)
                                 : key
                         }));
-                        issues.push(...issuesWithPath);
+                        return {
+                            ...acc,
+                            issues: [...acc.issues, ...issuesWithPath]
+                        };
                     } else {
                         throw error;
                     }
                 }
-            });
+            }, { result: {}, issues: [] });
 
             if (issues.length > 0) {
                 throw new ValidationError(issues);

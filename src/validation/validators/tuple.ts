@@ -28,12 +28,12 @@ export const tuple = <T extends Validator[]>(
                 throw new ValidationError([{ message: `Expected ${validators.length} elements, got ${value.length}`, path: '' }]);
             }
 
-            const issues: ValidationIssue[] = [];
-            const result: unknown[] = [];
-
-            validators.forEach((validator, index) => {
+            const { result, issues } = validators.reduce<{ result: unknown[], issues: ValidationIssue[] }>((acc, validator, index) => {
                 try {
-                    result.push(validator.parse(value[index]));
+                    return {
+                        ...acc,
+                        result: [...acc.result, validator.parse(value[index])]
+                    };
                 } catch (error) {
                     if (error instanceof ValidationError) {
                         // Prepend the tuple index to all issues
@@ -43,13 +43,16 @@ export const tuple = <T extends Validator[]>(
                                 ? (issue.path.startsWith('[') ? `[${index}]${issue.path}` : `[${index}].${issue.path}`)
                                 : `[${index}]`
                         }));
-                        issues.push(...issuesWithPath);
+                        return {
+                            ...acc,
+                            issues: [...acc.issues, ...issuesWithPath]
+                        };
                     } else {
                         // Non-validation error, re-throw
                         throw error;
                     }
                 }
-            });
+            }, { result: [], issues: [] });
 
             if (issues.length > 0) {
                 throw new ValidationError(issues);

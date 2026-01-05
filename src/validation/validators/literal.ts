@@ -18,7 +18,7 @@ export const lit = <T extends LiteralType>(literal: T): LiteralValidator<T> => {
                 }]);
             }
 
-            return value as T;
+            return literal;
         }
     });
 }

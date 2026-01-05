@@ -1,21 +1,14 @@
-import type { AtLeastTwo } from "../../types";
-import type { ExtractValidatorType, Validator } from "../common";
+import type { Validator } from "../common";
 import { withSafeParse } from "../withSafeParse";
 import { ValidationError, type ValidationIssue } from "../error";
 import { getValueType } from "../getValueType";
 
 // Extract tuple type from array of validators
-type InferTuple<T extends Validator[]> = {
-    [K in keyof T]: T[K] extends Validator ? ExtractValidatorType<T[K]> : never
-};
-
-type TupleValidator<T extends Validator[]> = Validator<InferTuple<T>>;
-
-export const tuple = <T extends Validator[]>(
-    validators: AtLeastTwo<T, Validator>
-): TupleValidator<T> => {
+export const tuple = <T extends [unknown, unknown, ...unknown[]]>(
+    validators: { [K in keyof T]: Validator<T[K]> }
+): Validator<T> => {
     return withSafeParse({
-        parse(value): InferTuple<T> {
+        parse(value): T {
             if (!Array.isArray(value)) {
                 const valueType = getValueType(value);
                 throw new ValidationError([{
@@ -28,7 +21,7 @@ export const tuple = <T extends Validator[]>(
                 throw new ValidationError([{ message: `Expected ${validators.length} elements, got ${value.length}`, path: '' }]);
             }
 
-            const { result, issues } = validators.reduce<{ result: unknown[], issues: ValidationIssue[] }>((acc, validator, index) => {
+            const { result, issues } = validators.reduce<{ result: T[number][], issues: ValidationIssue[] }>((acc, validator, index) => {
                 try {
                     return {
                         ...acc,
@@ -58,7 +51,7 @@ export const tuple = <T extends Validator[]>(
                 throw new ValidationError(issues);
             }
 
-            return result as InferTuple<T>;
+            return result as T;
         }
     });
 };

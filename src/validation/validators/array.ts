@@ -1,4 +1,4 @@
-import type { ExtractValidatorType, Validator } from "../common";
+import type { Validator } from "../common";
 import { withSafeParse } from "../withSafeParse";
 import { ValidationError, type ValidationIssue } from "../error";
 import { getValueType } from "../getValueType";
@@ -8,11 +8,9 @@ type ArrayOptions = {
     maxLen?: number;
 }
 
-type ArrayValidator<V extends Validator> = Validator<ExtractValidatorType<V>[]>;
-
-export const arr = <V extends Validator>(arrayValidator: V, opts?: ArrayOptions): ArrayValidator<V> => {
+export const arr = <T>(arrayValidator: Validator<T>, opts?: ArrayOptions): Validator<T[]> => {
     return withSafeParse({
-        parse(value): ExtractValidatorType<V>[] {
+        parse(value): T[] {
             if (!Array.isArray(value)) {
                 const valueType = getValueType(value);
                 throw new ValidationError([{
@@ -29,7 +27,7 @@ export const arr = <V extends Validator>(arrayValidator: V, opts?: ArrayOptions)
                 throw new ValidationError([{ message: `Value is too long, expected at most ${opts.maxLen} elements`, path: '' }]);
             }
 
-            const { result, issues } = value.reduce<{ result: unknown[], issues: ValidationIssue[] }>((acc, item, index) => {
+            const { result, issues } = value.reduce<{ result: T[], issues: ValidationIssue[] }>((acc, item, index) => {
                 try {
                     return {
                         ...acc,
@@ -59,7 +57,7 @@ export const arr = <V extends Validator>(arrayValidator: V, opts?: ArrayOptions)
                 throw new ValidationError(issues);
             }
 
-            return result as ExtractValidatorType<V>[];
+            return result;
         }
     });
 }

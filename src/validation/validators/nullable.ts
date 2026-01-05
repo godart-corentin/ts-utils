@@ -1,15 +1,15 @@
-import { type ExtractValidatorType, type Validator } from "../common";
+import { type Validator } from "../common";
 import { withSafeParse } from "../withSafeParse";
 
-export const nullable = <V extends Validator>(
-    validator: V
-): Validator<ExtractValidatorType<V> | null> => {
+export const nullable = <T>(
+    validator: Validator<T>
+): Validator<T | null> => {
     return withSafeParse({
-        parse(value): ExtractValidatorType<V> | null {
+        parse(value): T | null {
             if (value === null) {
                 return null;
             }
-            return validator.parse(value) as ExtractValidatorType<V>;
+            return validator.parse(value);
         }
     })
 };

@@ -1,18 +1,16 @@
-import type { ExtractValidatorType, Validator } from "../common";
+import type { Validator } from "../common";
 import { withSafeParse } from "../withSafeParse";
 import { ValidationError, type ValidationIssue } from "../error";
 import { getValueType } from "../getValueType";
 
 // Extract the parsed object type from a schema
 export type InferObjectType<Schema extends Record<string, Validator>> = {
-    [K in keyof Schema]: ExtractValidatorType<Schema[K]>
+    [K in keyof Schema]: Schema[K] extends Validator<infer T> ? T : never
 };
 
-type ObjectValidator<Schema extends Record<string, Validator>> = Validator<InferObjectType<Schema>>;
-
-export const obj = <Schema extends Record<string, Validator>>(schema: Schema): ObjectValidator<Schema> => {
+export const obj = <T extends Record<string, unknown>>(schema: { [K in keyof T]: Validator<T[K]> }): Validator<T> => {
     return withSafeParse({
-        parse(value): InferObjectType<Schema> {
+        parse(value): T {
             if (value === null || value === undefined || typeof value !== 'object' || Array.isArray(value) || value instanceof Date) {
                 const valueType = getValueType(value);
                 throw new ValidationError([{
@@ -22,7 +20,7 @@ export const obj = <Schema extends Record<string, Validator>>(schema: Schema): O
             }
 
             const { result, issues } = Object.entries(schema).reduce<{
-                result: Record<string, unknown>;
+                result: Partial<T>;
                 issues: ValidationIssue[];
             }>(
                 (acc, [key, validator]) => {
@@ -58,7 +56,7 @@ export const obj = <Schema extends Record<string, Validator>>(schema: Schema): O
                 throw new ValidationError(issues);
             }
 
-            return result as InferObjectType<Schema>;
+            return result as T;
         }
     });
 }

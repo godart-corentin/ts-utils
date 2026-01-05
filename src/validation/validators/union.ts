@@ -1,19 +1,17 @@
-import type { AtLeastTwo } from "../../types";
-import type { ExtractValidatorType, Validator } from "../common";
+import type { Validator } from "../common";
 import { withSafeParse } from "../withSafeParse";
 import { ValidationError } from "../error";
 import { getValueType } from "../getValueType";
 
-type UnionValidator<V extends Validator[]> = Validator<ExtractValidatorType<V[number]>>;
-
-export const union = <V extends Validator[]>(
-    validators: AtLeastTwo<V, Validator>
-): UnionValidator<V> => {
+// Extract union type from array of validators
+export const union = <T extends [unknown, unknown, ...unknown[]]>(
+    validators: { [K in keyof T]: Validator<T[K]> }
+): Validator<T[number]> => {
     return withSafeParse({
-        parse(value): ExtractValidatorType<V[number]> {
+        parse(value): T[number] {
             for (const validator of validators) {
                 try {
-                    return validator.parse(value) as ExtractValidatorType<V[number]>;
+                    return validator.parse(value);
                 } catch (error) {
                     continue;
                 }

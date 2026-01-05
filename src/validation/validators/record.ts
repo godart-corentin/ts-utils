@@ -1,24 +1,24 @@
-import type { ExtractValidatorType, Validator } from "../common";
+import type { Validator } from "../common";
 import { withSafeParse } from "../withSafeParse";
 import { ValidationError, type ValidationIssue } from "../error";
 import { getValueType } from "../getValueType";
 
-type RecordValidator<K extends Validator<string>, V extends Validator> = Validator<
-    Record<ExtractValidatorType<K>, ExtractValidatorType<V>>
+type RecordValidator<K extends PropertyKey, V> = Validator<
+    Record<K, V>
 >;
 
-export const record = <K extends Validator<string>, V extends Validator>(
-    keyValidator: K,
-    valueValidator: V
+export const record = <K extends PropertyKey, V>(
+    keyValidator: Validator<K>,
+    valueValidator: Validator<V>
 ): RecordValidator<K, V> => {
     return withSafeParse({
-        parse(value): Record<ExtractValidatorType<K>, ExtractValidatorType<V>> {
+        parse(value): Record<K, V> {
             if (value === null || value === undefined || typeof value !== 'object' || Array.isArray(value) || value instanceof Date) {
                 const valueType = getValueType(value);
                 throw new ValidationError([{ message: `Value is ${valueType}, expected object`, path: '' }]);
             }
 
-            const { result, issues } = Object.entries(value).reduce<{ result: Record<string, unknown>, issues: ValidationIssue[] }>((acc, [key, val]) => {
+            const { result, issues } = Object.entries(value).reduce<{ result: Partial<Record<K, V>>, issues: ValidationIssue[] }>((acc, [key, val]) => {
                 try {
                     keyValidator.parse(key);
                 } catch (error) {
@@ -64,7 +64,7 @@ export const record = <K extends Validator<string>, V extends Validator>(
                 throw new ValidationError(issues);
             }
 
-            return result as Record<ExtractValidatorType<K>, ExtractValidatorType<V>>;
+            return result as Record<K, V>;
         }
     });
 };

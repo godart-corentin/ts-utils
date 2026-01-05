@@ -1,29 +1,29 @@
-import type { ExtractValidatorType, Validator } from "../common";
+import type { Validator } from "../common";
 import { withSafeParse } from "../withSafeParse";
 
 // Overload signatures for better type inference
-export function optional<V extends Validator>(
-    validator: V
-): Validator<ExtractValidatorType<V> | undefined>;
+export function optional<T>(
+    validator: Validator<T>
+): Validator<T | undefined>;
 
-export function optional<V extends Validator>(
-    validator: V,
-    defaultValue: ExtractValidatorType<V>
-): Validator<ExtractValidatorType<V>>;
+export function optional<T>(
+    validator: Validator<T>,
+    defaultValue: T
+): Validator<T>;
 
 // Implementation
-export function optional<V extends Validator>(
-    validator: V,
-    defaultValue?: ExtractValidatorType<V>
-): Validator<ExtractValidatorType<V> | undefined> | Validator<ExtractValidatorType<V>> {
+export function optional<T>(
+    validator: Validator<T>,
+    defaultValue?: T
+): Validator<T | undefined> {
     const hasDefault = arguments.length === 2;
 
     return withSafeParse({
-        parse(value): ExtractValidatorType<V> | undefined {
+        parse(value): T | undefined {
             if (value === undefined) {
                 return hasDefault ? defaultValue! : undefined;
             }
-            return validator.parse(value) as ExtractValidatorType<V>;
+            return validator.parse(value);
         }
     });
 }
